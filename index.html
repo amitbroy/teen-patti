@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teen Patti 🃏</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Hind:wght@300;400;500;600&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+</head>
+<body>
+
+<div class="bg-festive"></div>
+
+<!-- ── Navigation (hidden on auth page) ─────────────────────── -->
+<nav id="app-nav" class="top-nav" style="display:none">
+  <span class="nav-brand">🃏 Teen Patti</span>
+  <div class="nav-links">
+    <a onclick="showPage('lobby');loadLobby()">🏠 Lobby</a>
+    <a onclick="showLeaderboard()">🏆 Rankings</a>
+    <span class="nav-user" id="nav-username"></span>
+    <span id="nav-tier" style="font-size:.85rem"></span>
+    <button class="nav-mute" id="mute-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
+    <button class="btn-nav-logout" onclick="doLogout()">Logout</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: AUTH (Login / Register)
+     ══════════════════════════════════════════════════════════ -->
+<div class="page active" id="page-auth">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">🃏</div>
+      <h1 class="auth-title">Teen Patti</h1>
+      <p class="auth-sub">The Ultimate Desi Card Game</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="showTab('login')">Login</button>
+        <button class="auth-tab" id="tab-register" onclick="showTab('register')">Register</button>
+      </div>
+
+      <!-- Login form -->
+      <div id="form-login" class="auth-form-section">
+        <div class="err-msg" id="login-err"></div>
+        <div class="field">
+          <label>Player ID</label>
+          <input type="text" id="login-username" placeholder="your_username" autocomplete="username" autocapitalize="none"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <button class="btn-primary" onclick="doLogin()">▶ Enter the Table</button>
+      </div>
+
+      <!-- Register form -->
+      <div id="form-register" class="auth-form-section hidden">
+        <div class="err-msg" id="reg-err"></div>
+        <div class="field">
+          <label>Choose Player ID</label>
+          <input type="text" id="reg-username" placeholder="e.g. raj_king" autocapitalize="none"/>
+          <small>Letters, numbers, underscore only. Min 3 chars.</small>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="Min 6 characters"/>
+        </div>
+        <div class="field">
+          <label>Confirm Password</label>
+          <input type="password" id="reg-confirm" placeholder="Repeat password"/>
+        </div>
+        <button class="btn-primary" onclick="doRegister()">🎉 Create Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: LOBBY
+     ══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-lobby">
+  <div class="lobby-wrap">
+    <div class="lobby-hero">
+      <h1>Welcome back!</h1>
+      <p>Ready to play? Create a table or join your friends.</p>
+      <div class="rank-badge" id="rank-badge">🌱 Rookie · 0 pts</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-wins">0</div>
+        <div class="stat-lbl">Wins</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-losses">0</div>
+        <div class="stat-lbl">Losses</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-pts">0</div>
+        <div class="stat-lbl">Points Won</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-best">0</div>
+        <div class="stat-lbl">Biggest Win</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="lobby-actions">
+      <div class="action-card">
+        <h3>➕ Create Table</h3>
+        <p style="color:var(--text-dim);font-size:.88rem;margin-bottom:1rem">Set your rules and invite friends with a Room ID.</p>
+        <button class="btn-primary" onclick="showCreateRoom()">Create New Table</button>
+      </div>
+      <div class="action-card">
+        <h3>🚪 Join Table</h3>
+        <p style="color:var(--text-dim);font-size:.88rem;margin-bottom:.8rem">Enter the Room ID your friend shared.</p>
+        <div class="input-row">
+          <input class="lobby-input" id="join-input" placeholder="ROOM ID" maxlength="8" style="text-transform:uppercase"/>
+          <button class="btn-secondary" onclick="doJoinRoom()">Join</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Open rooms -->
+    <div class="open-rooms">
+      <h3>🌐 Open Tables</h3>
+      <div class="room-list" id="open-rooms-list">
+        <div style="color:var(--text-dim);font-size:.85rem;text-align:center;padding:.8rem">Loading rooms…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: CREATE ROOM
+     ══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-create">
+  <div class="create-wrap">
+    <div class="create-card">
+      <h2>🃏 Create Table</h2>
+      <p>Customise your game settings below.</p>
+
+      <div class="slider-field">
+        <div class="slider-label">Boot Amount <span id="boot-val">5</span> pts</div>
+        <input type="range" id="boot-slider" min="1" max="50" value="5"
+               oninput="document.getElementById('boot-val').textContent=this.value"/>
+        <div class="range-labels"><span>1</span><span>25</span><span>50</span></div>
+        <small style="color:var(--text-dim);font-size:.78rem">Blind bet = Boot · Seen bet = Boot × 2</small>
+      </div>
+
+      <div class="slider-field">
+        <div class="slider-label">Starting Points per Player <span id="pts-val">100</span></div>
+        <input type="range" id="pts-slider" min="50" max="100" value="100"
+               oninput="document.getElementById('pts-val').textContent=this.value"/>
+        <div class="range-labels"><span>50</span><span>75</span><span>100</span></div>
+      </div>
+
+      <div class="slider-field">
+        <div class="slider-label">Bot Players <span id="bots-val">0</span></div>
+        <input type="range" id="bots-slider" min="0" max="7" value="0"
+               oninput="document.getElementById('bots-val').textContent=this.value"/>
+        <div class="range-labels"><span>0</span><span>Practice alone</span><span>7 bots</span></div>
+        <small style="color:var(--text-dim);font-size:.78rem">Add bots to fill seats or practice</small>
+      </div>
+
+      <div style="display:flex;gap:.8rem;margin-top:1.5rem">
+        <button class="btn-primary" onclick="doCreateRoom()">🃏 Create Table</button>
+        <button class="btn-outline" onclick="showPage('lobby');loadLobby()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: RULES
+     ══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-rules">
+  <div class="rules-wrap">
+    <div class="rules-header">
+      <h1>📜 Rules & Hand Rankings</h1>
+      <p>Room <strong id="rules-room-id" style="color:var(--turmeric)"></strong> — read carefully before entering!</p>
+    </div>
+
+    <div class="rules-grid">
+      <!-- Hand rankings -->
+      <div class="rules-panel">
+        <h3>🃏 Hand Rankings (High → Low)</h3>
+        <ul class="hand-rank-list">
+          <li class="hand-rank-item hr-trail">
+            <span class="rank-icon">🔥</span>
+            <div><div class="rank-name">Trail (Three of a Kind)</div><div class="rank-desc">Three same-rank cards. A-A-A is highest.</div></div>
+          </li>
+          <li class="hand-rank-item hr-pureseq">
+            <span class="rank-icon">💜</span>
+            <div><div class="rank-name">Pure Sequence</div><div class="rank-desc">Three consecutive cards, same suit.</div></div>
+          </li>
+          <li class="hand-rank-item hr-seq">
+            <span class="rank-icon">🔵</span>
+            <div><div class="rank-name">Sequence (Straight)</div><div class="rank-desc">Three consecutive cards, mixed suits.</div></div>
+          </li>
+          <li class="hand-rank-item hr-color">
+            <span class="rank-icon">♠</span>
+            <div><div class="rank-name">Color (Flush)</div><div class="rank-desc">Three cards, same suit, not consecutive.</div></div>
+          </li>
+          <li class="hand-rank-item hr-pair">
+            <span class="rank-icon">👥</span>
+            <div><div class="rank-name">Pair</div><div class="rank-desc">Two cards of same rank. Higher pair wins.</div></div>
+          </li>
+          <li class="hand-rank-item hr-high">
+            <span class="rank-icon">🎴</span>
+            <div><div class="rank-name">High Card</div><div class="rank-desc">None of the above. Highest card wins.</div></div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Rules -->
+      <div class="rules-panel">
+        <h3>⚙️ This Table's Rules</h3>
+        <div class="table-rules" style="margin-bottom:1.2rem">
+          <div class="table-rule"><span>Boot (entry fee)</span><span id="rules-boot">5</span></div>
+          <div class="table-rule"><span>Blind bet</span><span id="rules-boot2">5</span> pts</div>
+          <div class="table-rule"><span>Seen bet</span><span id="rules-seen">10</span> pts</div>
+          <div class="table-rule"><span>Starting points</span><span id="rules-pts">100</span></div>
+          <div class="table-rule"><span>Players</span><span>2–8</span></div>
+        </div>
+
+        <h3>🕹️ How to Play</h3>
+        <ul class="rules-list">
+          <li>Everyone pays the Boot to enter the pot</li>
+          <li><strong>Chaal</strong> — match the current bet to stay in the round</li>
+          <li><strong>See</strong> — peek at your cards (doubles your future bets)</li>
+          <li><strong>Fold</strong> — give up this round and lose your bet</li>
+          <li><strong>Show</strong> — challenge another seen player to reveal cards; best hand wins the pot</li>
+          <li>Last player standing wins the pot automatically</li>
+          <li>A-2-3 counts as a valid Sequence (wrap-around)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Accept -->
+    <div class="rules-accept">
+      <label class="accept-row">
+        <input type="checkbox" id="accept-check" onchange="toggleAccept()"/>
+        I have read and understood all rules and hand rankings
+      </label>
+      <button class="btn-primary" id="accept-btn" disabled onclick="doAcceptRules()" style="max-width:300px;margin:0 auto">
+        ✅ Accept & Enter Table
+      </button>
+      <div onclick="copyRoomId()" class="share-box" style="cursor:pointer">
+        <span class="share-id" id="share-room-id"></span>
+        <span class="share-hint">📋 Click to copy Room ID</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: GAME TABLE
+     ══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-game">
+  <div class="game-layout">
+
+    <!-- Top bar -->
+    <div class="game-topbar">
+      <div class="topbar-room">Room <strong id="game-room-id"></strong></div>
+      <div class="topbar-pot" id="game-pot">🏺 Waiting…</div>
+      <button class="btn-outline" style="padding:.3rem .8rem;font-size:.8rem" onclick="leaveRoom()">🚪 Leave</button>
+    </div>
+
+    <!-- Felt (main table) -->
+    <div class="game-felt">
+      <!-- Opponents row -->
+      <div class="opponents-row" id="opponents-row"></div>
+
+      <!-- Centre -->
+      <div class="center-zone">
+        <div class="pot-chip" id="pot-chip">🏺 —</div>
+        <div class="turn-indicator" id="turn-indicator"></div>
+      </div>
+
+      <!-- My area -->
+      <div class="my-area">
+        <div class="my-cards" id="my-cards">
+          <div class="card-back">🂠</div>
+          <div class="card-back">🂠</div>
+          <div class="card-back">🂠</div>
+        </div>
+        <div class="my-info-bar">
+          <span class="my-name" id="my-name-display"></span>
+          <span class="pts-pill" id="my-pts">— pts</span>
+          <span class="seen-pill" id="seen-pill">👁 SEEN</span>
+        </div>
+        <div class="action-bar" id="action-bar" style="display:none">
+          <button class="act act-chaal" onclick="doAction('chaal')">💰 Chaal</button>
+          <button class="act act-see"   id="btn-see"  onclick="doAction('see')">👁 See Cards</button>
+          <button class="act act-fold"  onclick="doAction('fold')">🏳 Fold</button>
+          <button class="act act-show"  id="btn-show" onclick="openShowModal()">⚔️ Show</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="game-sidebar">
+
+      <!-- Players list -->
+      <div class="sidebar-card">
+        <h4>Players</h4>
+        <ul class="player-list-game" id="sidebar-players"></ul>
+        <div id="start-btn-wrap" class="hidden" style="margin-top:.8rem">
+          <button class="btn-primary" style="font-size:.9rem;padding:.65rem" onclick="startGame()">▶ Start Game</button>
+        </div>
+      </div>
+
+      <!-- Round log -->
+      <div class="sidebar-card">
+        <h4>Round Log</h4>
+        <ul class="log-list" id="round-log"></ul>
+      </div>
+
+      <!-- Chat (hidden for bot-only games) -->
+      <div class="sidebar-card hidden" id="chat-section">
+        <h4>Chat</h4>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-row">
+          <input id="chat-input" type="text" placeholder="Say something…" maxlength="200"/>
+          <button onclick="sendChat()">Send</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: LEADERBOARD
+     ══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-leaderboard">
+  <div class="lb-wrap">
+    <div class="lb-header">
+      <h1>🏆 Hall of Champions</h1>
+      <p>Ranked by Win Rate · Points Won · Biggest Win</p>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <button class="btn-outline" onclick="showPage('lobby');loadLobby()">← Back to Lobby</button>
+    </div>
+    <div class="lb-wrap-table">
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Player</th>
+            <th>Score</th>
+            <th>W / L</th>
+            <th>Points Won</th>
+            <th>Biggest Win</th>
+            <th>Games</th>
+          </tr>
+        </thead>
+        <tbody id="lb-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-dim)">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+     ══════════════════════════════════════════════════════════ -->
+
+<!-- Show challenge modal -->
+<div class="modal-overlay" id="show-modal">
+  <div class="modal-box">
+    <h3>⚔️ Challenge to Show</h3>
+    <p>Pick an opponent to reveal cards against. Best hand wins the pot.</p>
+    <ul class="show-targets" id="show-target-list"></ul>
+    <button class="btn-outline" onclick="closeShowModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Round end modal -->
+<div class="modal-overlay" id="end-modal">
+  <div class="modal-box" style="text-align:center">
+    <div class="end-winner" id="end-winner-text"></div>
+    <div class="end-pot" id="end-pot-text"></div>
+    <div class="end-hands" id="end-hands"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="closeEndModal()">🔄 Next Round</button>
+      <button class="btn-outline" onclick="leaveRoom()">🚪 Leave</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     FIREBASE — compat SDK (no build step needed)
+     ══════════════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<!-- ── App scripts (order matters) ── -->
+<script>
+  // Inline Firebase config — no separate file needed
+  const FIREBASE_CONFIG = {
+    apiKey:            "AIzaSyCI62eojbyvA0SX-DzrYCROpXgmmwC_ipc",
+    authDomain:        "couple-calendar-20e17.firebaseapp.com",
+    databaseURL:       "https://couple-calendar-20e17-default-rtdb.firebaseio.com",
+    projectId:         "couple-calendar-20e17",
+    storageBucket:     "couple-calendar-20e17.firebasestorage.app",
+    messagingSenderId: "415817059573",
+    appId:             "1:415817059573:web:ede4683af6fa4a70d8c9bc"
+  };
+  window.FIREBASE_CONFIG = FIREBASE_CONFIG;
+</script>
+<script src="js/game-logic.js"></script>
+<script src="js/sounds.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/rooms.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
